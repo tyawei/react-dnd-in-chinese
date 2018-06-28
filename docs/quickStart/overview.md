@@ -84,3 +84,13 @@ render() {
 ```
 
 `connectDropTarget` 函数的调用会告知 React DnD 我们组件的根 DOM 节点是一个有效的放置目标，进而它的移入和放置事件会被 backend 处理。在内部，它是通过为我们定义的 React 元素上附加回调引用（callback ref）来实现的。connector 返回的该函数是被缓存的，因此不会使 `shouldComponentUpdate` 的优化失效。
+
+## Drag Sources and Drop Targets
+
+目前为止，我们提到了结合 DOM 的 backend、代表 item 和 type 的数据、collecting 函数，以及用来描述 React DnD 该为我们的组件注入何种 props 的 monitor 和 connector。
+
+我们如何配置我们的组件来实际拥有这些注入的 props？我们如何处理拖动和放置事件的副作用？我们把注意力集中到拖动源和放置目标上，他们是 React DnD 的主要抽象模块。他们与 type、item、副作用、collecting 函数紧密结合。
+
+当我们想使得一个组件或它其中的某些部分是可拖拽的，我们需要将该组件包裹至拖拽源声明中。每个拖拽源都会注册一个确定的 type，并指定一个用来根据 component props 产生 item 的方法。另外也允许指定一些其他的处理拖放事件的方法。拖拽源声明同样允许我们为给定的 component 指定 collecting 函数。
+
+放置目标同拖拽源非常类似，他们唯一的区别是，一个放置目标也许会一次性注册多个 item types，而不是去产生一个 item。
