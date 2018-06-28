@@ -94,3 +94,58 @@ render() {
 当我们想使得一个组件或它其中的某些部分是可拖拽的，我们需要将该组件包裹至拖拽源声明中。每个拖拽源都会注册一个确定的 type，并指定一个用来根据 component props 产生 item 的方法。另外也允许指定一些其他的处理拖放事件的方法。拖拽源声明同样允许我们为给定的 component 指定 collecting 函数。
 
 放置目标同拖拽源非常类似，他们唯一的区别是，一个放置目标也许会一次性注册多个 item types，而不是去产生一个 item。
+
+## Higher-Order Components and ES7 decorators
+
+高阶组件本质上是一个函数，传入一个 React Component Class，返回一个新的 React Component Class。库中提供的外层包裹组件将会在它的 `render` 方法中渲染我们的组件，并且传递 props 和一些其他有用的行为。
+
+在 React DnD 中，`DragSource` 和 `DropTarget`，以及其他一些暴露的顶层 API 函数，事实上他们都是高阶组件。是它们将拖放的魔法赋予了我们的组件。
+
+需要注意的是使用它们需要进行两次函数调用，例如，以下是如何将 `YourComponent` 包裹至 `DragSource`：
+
+```javascript
+// ES6
+import { DragSource } from 'react-dnd'
+
+class YourComponent {
+  /* ... */
+}
+
+export default DragSource(/* ... */)(YourComponent)
+```
+
+注意，在为第一个函数指定 `DragSource` 参数并进行调用后，还有第二个函数调用，用来最终传入我们的 class。这被称为柯里化或是偏函数。结合 ES7 修饰器语法我们可以开箱即用：
+
+```javascript
+// ES7
+import { DragSource } from 'react-dnd
+
+@DragSource(/* ... */)
+export default class YourComponent {
+  /* ... */
+}
+```
+
+没必要一定用这种语法，但如果我们喜欢这种方式的话，可以通过 Babel 将我们的代码转译，在 `.babelrc` 文件中设置 `{ "stage": 1 }`。
+
+即便我们没有计划使用 ES7，偏函数用法依然奏效，我们可以使用 ES5 或 ES6 标准并结合函数式组合辅助函数（比如 _.flow）来结合 `DragSource` 和 `DropTarget`。
+
+```javascript
+// ES6
+import { DragSource, DropTarget } from 'react-dnd'
+import flow from 'lodash/flow'
+
+class YourComponent {
+  render() {
+    const { connectDragSource, connectDropTarget } = this.props
+    return connectDragSource(connectDropTarget(
+      /* ... */
+    ))
+  }
+}
+
+export default flow(
+  DragSource(/* ... */),
+  DropTarget(/* ... */)
+)(YourComponent)
+```
