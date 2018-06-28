@@ -46,3 +46,41 @@ function collect(monitor) {
 ```
 
 这会令 React DnD 为所有的 `Cell` 组件实例的 props 传递最新的 `highlighted` 和 `hovered` 值。
+
+## Connectors
+
+backend 处理 DOM 事件，React Component 来描述 DOM，那么 backend 怎么知道究竟去监听哪个 DOM 节点？—— 通过 connectors。connectors 使得我们可以在 `render` 函数中指定预定义好的拖动源、拖动预览或是放置目标对应到 DOM 节点。
+
+实际上，connector 是作为第一个参数被传递到我们以上所说的 collecting 函数中的。让我们看看如何使用它来指定放置目标：
+
+```javascript
+function collect(connect, monitor) {
+  return {
+    highlighted: monitor.canDrop(),
+    hovered: monitor.isOver(),
+    connectDropTarget: connect.dropTarget()
+  }
+}
+```
+
+于是在 component 的 `render` 方法中，我们可以访问到 monitor 中的数据以及 connector 中的函数：
+
+```javascript
+// ES6
+render() {
+  const { highlighted, hovered, connectDropTarget } = this.props
+
+  return connectDropTarget(
+    <div className={classSet({
+      'Cell': true,
+      'Cell--highlighted': highlighted,
+      'Cell--hovered': hovered
+    })}
+    >
+      {this.props.children}
+    </div>
+  )
+}
+```
+
+`connectDropTarget` 函数的调用会告知 React DnD 我们组件的根 DOM 节点是一个有效的放置目标，进而它的移入和放置事件会被 backend 处理。在内部，它是通过为我们定义的 React 元素上附加回调引用（callback ref）来实现的。connector 返回的该函数是被缓存的，因此不会使 `shouldComponentUpdate` 的优化失效。
