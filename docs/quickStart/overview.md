@@ -118,7 +118,7 @@ export default DragSource(/* ... */)(YourComponent)
 
 ```javascript
 // ES7
-import { DragSource } from 'react-dnd
+import { DragSource } from 'react-dnd'
 
 @DragSource(/* ... */)
 export default class YourComponent {
